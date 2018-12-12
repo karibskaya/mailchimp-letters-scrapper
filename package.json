@@ -1,0 +1,17 @@
+{
+  "name": "mailchimp-letters-scrapper",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Igor Adamenko <mail@igoradamenko.com> (http://igoradamenko.com)",
+  "license": "MIT",
+  "devDependencies": {
+    "cheerio": "1.0.0-rc.2",
+    "fs-extra": "7.0.0",
+    "request": "2.88.0",
+    "request-promise-native": "1.0.5"
+  }
+}
