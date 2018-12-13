@@ -1,6 +1,6 @@
 {
   "name": "mailchimp-letters-scrapper",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "Download and save MailChimp emails",
   "main": "index.js",
   "scripts": {
