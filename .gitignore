@@ -1,4 +1,4 @@
 /.idea
 /node_modules
 /files
-/test/result
+/tests/result
