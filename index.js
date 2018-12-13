@@ -41,8 +41,8 @@ async function scrapImages({ $, $object, pageId, dir, basepath }) {
     const imgName = url.split('?')[0].split('/').pop();
     const imgRelativeDir = `files/${pageId}`;
     const realImgDir = `${dir}/${imgRelativeDir}`;
-    const realImgPath = `${realImgDir}/${imgName}`;
-    const srcImgPath = `${basepath}/${imgRelativeDir}/${imgName}`;
+    const realImgPath = path.normalize(`${realImgDir}/${imgName}`);
+    const srcImgPath = path.normalize(`${basepath}/${imgRelativeDir}/${imgName}`);
 
     ensureDir(realImgDir);
 
