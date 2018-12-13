@@ -8,6 +8,10 @@
   },
   "author": "Igor Adamenko (http://igoradamenko.com)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igoradamenko/mailchimp-letters-scrapper.git"
+  },
   "dependencies": {
     "cheerio": "1.0.0-rc.2",
     "request": "2.88.0",
