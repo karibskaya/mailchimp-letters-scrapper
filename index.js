@@ -1,55 +1,82 @@
+const fs = require('fs');
+const path = require('path');
+
 const rq = require('request-promise-native');
 const cheerio = require('cheerio');
-const fse = require('fs-extra');
 
-if (process.argv.length < 3) {
-  console.error('URL not found');
-  process.exit(1);
-}
+module.exports = async function scrapper({ pages, dir, basepath }) {
+  if (!Array.isArray(pages)) {
+    pages = [pages];
+  }
 
-const TEST_URL = process.argv[2];
-const DIR = `./files`;
+  ensureDir(dir);
 
-async function run() {
+  for (let page of pages) {
+    await scrap({ page, dir, basepath });
+  }
+};
+
+async function scrap({ page: { id, url }, dir, basepath} ) {
   let html;
 
-  try {
-    html = await rq(TEST_URL);
-  } catch(e) {
-    console.error(e);
-    process.exit(1);
-  }
+  html = await rq(url);
 
   const $ = cheerio.load(html);
   const $header = $('#templateHeader');
   const $body = $('#templateBody');
 
-  fse.ensureDirSync(DIR);
+  await scrapImages({ $, $object: $header, pageId: id, dir, basepath });
+  await scrapImages({ $, $object: $body, pageId: id, dir, basepath });
 
-  await downloadImages($header, $);
-  await downloadImages($body, $);
+  const content = $header.html() + $body.html();
 
-  console.log($header.html());
-  console.log($body.html());
+  fs.writeFileSync(`${dir}/${id}.html`, content, { encoding: 'utf8' });
 }
 
-async function downloadImages($selector, $) {
-  const $images = $selector.find('img');
-  const urls = $images.map(function (i, el) { return $(this).attr('src'); }).get();
+async function scrapImages({ $, $object, pageId, dir, basepath }) {
+  const $images = $object.find('img');
+  const urls = $images.map(function () { return $(this).attr('src'); }).get();
 
   for (let url of urls) {
     const imgName = url.split('?')[0].split('/').pop();
-    const imgPath = `${DIR}/${imgName}`;
+    const imgRelativeDir = `files/${pageId}`;
+    const realImgDir = `${dir}/${imgRelativeDir}`;
+    const realImgPath = `${realImgDir}/${imgName}`;
+    const srcImgPath = `${basepath}/${imgRelativeDir}/${imgName}`;
 
-    try {
-      await rq(url).pipe(fse.createWriteStream(imgPath));
-    } catch (e) {
-      console.error(e);
-      process.exit(1);
-    }
+    ensureDir(realImgDir);
 
-    $selector.find(`img[src="${url}"]`).attr('src', imgPath);
+    await rq(url).pipe(fs.createWriteStream(realImgPath));
+
+    $object.find(`img[src="${url}"]`).attr('src', srcImgPath);
   }
 }
 
-run();
+function ensureDir(p, made = null) {
+  p = path.resolve(p);
+
+  try {
+    fs.mkdirSync(p);
+    made = made || p;
+  } catch (err) {
+    switch (err.code) {
+      case 'ENOENT' :
+        made = ensureDir(path.dirname(p), made);
+        ensureDir(p, made);
+        break;
+      default:
+        let stat;
+        try {
+          stat = fs.statSync(p);
+        } catch (e) {
+          throw err; // throw original error
+        }
+
+        if (!stat.isDirectory()) throw err; // throw original error
+
+        break;
+    }
+  }
+
+  return made;
+}
